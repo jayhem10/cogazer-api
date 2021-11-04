@@ -11,11 +11,18 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Serializer\Annotation\Groups;
+
 
 /**
- * @ApiResource()
+ * @ApiResource(
+ *     normalizationContext={"groups"={"user:read"}},
+ *     denormalizationContext={"groups"={"user:write"}},
+ * )
  * @ORM\Entity(repositoryClass=UserRepository::class)
  * @ORM\Table(name="`user`")
+ * @UniqueEntity(fields={"pseudo"})
+ * @UniqueEntity(fields={"email"})
  */
 class User
 {
@@ -25,14 +32,19 @@ class User
      * @ORM\Column(type="integer")
      */
     private $id;
-/**
-     * @ORM\Column(type="string", length=255)
+    /**
+     * @ORM\Column(type="string", length=255, unique=true)
+     * @Groups({"user:read", "user:write"})
+     * @Assert\NotBlank()
      */
     private $pseudo;
 
     /**
      * @ORM\Column(type="string", length=255)
      * @Assert\Length(min="8", minMessage="Votre mot de passe doit faire minimum 8 caractères")
+     *
+     * @Groups({"user:write"})
+     * @Assert\NotBlank()
      */
     private $password;
 
@@ -44,6 +56,9 @@ class User
     /**
      * @ORM\Column(type="string", length=255)
      * @Assert\Email(message="Merci de renseigner une adresse mail valable")
+     * @Groups({"user:read", "user:write"})
+     * @Assert\NotBlank()
+     * @Assert\Email()
      */
     private $email;
 
